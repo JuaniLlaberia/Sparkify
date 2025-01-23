@@ -1,6 +1,13 @@
 import { ThemeProvider } from 'next-themes';
+import { GeistSans } from 'geist/font/sans';
 import type { Metadata } from 'next';
+
+import Header from '@/components/custom/header';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { MessagesProvider } from '@/context/messages-context';
 import './globals.css';
+import NextTopLoader from 'nextjs-toploader';
+import { Toaster } from 'sonner';
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -14,16 +21,27 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en'>
-      <body>
+      <body className={GeistSans.className}>
+        <NextTopLoader
+          showSpinner={false}
+          color='#8E51FF'
+        />
+        <Toaster richColors />
         <ThemeProvider
           attribute='class'
           defaultTheme='dark'
           enableSystem
           disableTransitionOnChange
         >
-          <main className='min-h-screen bg-background text-primary'>
-            {children}
-          </main>
+          <TooltipProvider delayDuration={50}>
+            <MessagesProvider>
+              <main className='min-h-screen text-primary'>
+                <div className='absolute left-0 right-0 -top-20 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-violet-400 opacity-20 blur-[100px]'></div>
+                <Header />
+                {children}
+              </main>
+            </MessagesProvider>
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>
