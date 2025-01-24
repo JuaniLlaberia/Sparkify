@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { formatRelativeDate } from '@/lib/helpers';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import Link from 'next/link';
 
 const BATCH_SIZE = 10;
 
@@ -50,27 +51,34 @@ const ChatsTable = () => {
           ))}
         </ul>
       ) : (
-        <ul className='space-y-1.5'>
+        <ul className='space-y-1.5 w-full'>
           {filteredResults.length > 0 ? (
             filteredResults.map(result => (
               <li
                 key={result._id}
-                className='bg-muted/25 border border-border rounded-lg p-2.5 px-3.5'
+                className='w-full'
               >
-                <p className='flex items-center gap-2'>
-                  <MessageSquare className='size-4' />
-                  {result.prompt}
-                </p>
-                <Separator className='my-2.5' />
-                <div className='flex items-center justify-between'>
-                  <p className='text-sm text-muted-foreground'>
-                    {formatRelativeDate(result._creationTime)}
-                  </p>
-                  <ChatsActions
-                    chatData={result}
-                    showOnHover={false}
-                  />
-                </div>
+                <Link
+                  href={`/chat/${result._id}`}
+                  className='block w-full'
+                >
+                  <div className='w-full bg-muted/25 border border-border rounded-lg p-2.5 px-3.5 hover:bg-muted/50 transition-colors'>
+                    <p className='flex items-center gap-2'>
+                      <MessageSquare className='size-4 shrink-0' />
+                      <span className='truncate'>{result.prompt}</span>
+                    </p>
+                    <Separator className='my-2.5' />
+                    <div className='flex items-center justify-between'>
+                      <p className='text-sm text-muted-foreground'>
+                        {formatRelativeDate(result._creationTime)}
+                      </p>
+                      <ChatsActions
+                        chatData={result}
+                        showOnHover={false}
+                      />
+                    </div>
+                  </div>
+                </Link>
               </li>
             ))
           ) : (
