@@ -28,6 +28,7 @@ const PromptInput = () => {
     <div className='p-5 border border-border bg-muted/25 rounded-xl max-w-[34rem] w-full mt-3'>
       <div className='flex gap-2 relative'>
         <textarea
+          autoFocus
           placeholder='What do you have in mind?'
           className='outline-none bg-transparent border-transparent w-full h-24 max-h-48 resize-none placeholder:text-muted-foreground'
           onChange={e => setUsetInput(e.target.value)}

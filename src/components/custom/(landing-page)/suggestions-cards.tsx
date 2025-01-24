@@ -21,7 +21,7 @@ const SuggestionsCards = () => {
   };
 
   return (
-    <ul className='flex flex-wrap mt-12 max-w-2xl items-center justify-center gap-2.5'>
+    <ul className='flex flex-wrap mt-8 md:mt-12 max-w-2xl items-center justify-center gap-2.5'>
       {SUGGESTIONS.map((suggestion, i) => (
         <li
           key={i}

@@ -2,8 +2,8 @@ import Link from 'next/link';
 
 const Footer = () => {
   return (
-    <footer className='flex items-center justify-end p-2 px-3.5 mt-auto'>
-      <ul className='flex items-center gap-2 text-sm text-muted-foreground'>
+    <footer className='flex items-center justify-center md:justify-end p-2 px-3.5 mt-auto'>
+      <ul className='flex items-center gap-2 text-xs md:text-sm text-muted-foreground'>
         <li>
           <Link
             href='/tos'
@@ -21,7 +21,7 @@ const Footer = () => {
             Privacy
           </Link>
         </li>
-        |<li>Ai-Chat © {new Date().getFullYear()} All rights reserved</li>
+        |<li>Sparkify © {new Date().getFullYear()} All rights reserved</li>
       </ul>
     </footer>
   );
