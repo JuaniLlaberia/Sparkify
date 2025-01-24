@@ -48,6 +48,8 @@ const ChatView = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
 
   useEffect(() => {
+    if (!messages) return;
+
     scrollToBottom();
   }, [messages]);
 
