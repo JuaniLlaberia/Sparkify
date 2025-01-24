@@ -1,9 +1,35 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useMutation } from 'convex/react';
+import { toast } from 'sonner';
+
 import PromptInput from '../promp-input';
 import SuggestionsCards from './suggestions-cards';
 import { AnimatedShinyText } from '@/components/ui/animated-shiny-text';
 import { cn } from '@/lib/utils';
+import { api } from '../../../../convex/_generated/api';
 
 const Hero = () => {
+  const [userInput, setUsetInput] = useState<string>('');
+  const router = useRouter();
+  const createChat = useMutation(api.chats.createChat);
+
+  const handleGenerate = async (prompt: string) => {
+    try {
+      const chatId = await createChat({
+        prompt,
+        message: { role: 'user', content: prompt },
+      });
+
+      router.push(`/chat/${chatId}`);
+      toast.success('Chat created successfully');
+    } catch {
+      toast.error('Failed to create chat');
+    }
+  };
+
   return (
     <div className='flex flex-col items-center mt-24 md:mt-48 gap-2 p-6'>
       <div
@@ -22,7 +48,11 @@ const Hero = () => {
         Prompt, run, edit, and deploy full-stack web apps.
       </p>
 
-      <PromptInput />
+      <PromptInput
+        handleSend={handleGenerate}
+        userInput={userInput}
+        setUserInput={setUsetInput}
+      />
       <SuggestionsCards />
     </div>
   );
