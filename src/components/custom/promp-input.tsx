@@ -1,37 +1,44 @@
 'use client';
 
 import { ArrowRight, Link } from 'lucide-react';
-import { use, useState } from 'react';
+import type { Dispatch, KeyboardEvent, SetStateAction } from 'react';
 
 import Hint from '../ui/hint';
 import { Button } from '../ui/button';
-import { MessagesContext } from '@/context/messages-context';
 
-const PromptInput = () => {
-  const [userInput, setUsetInput] = useState<string>('');
+type PromptInputProps = {
+  handleSend: (input: string) => void;
+  userInput: string;
+  setUserInput: Dispatch<SetStateAction<string>>;
+};
 
-  const messagesContext = use(MessagesContext);
-  if (!messagesContext)
-    throw new Error('Messages context must be used within a MessagesProvider.');
-  const { setMessages } = messagesContext;
+const PromptInput = ({
+  handleSend,
+  userInput,
+  setUserInput,
+}: PromptInputProps) => {
+  const handleEnterPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
 
-  const handleGenerate = (input: string) => {
-    setMessages([
-      {
-        role: 'user',
-        content: input,
-      },
-    ]);
+      if (e.shiftKey) {
+        setUserInput(userInput + '\n');
+      } else if (userInput.trim() !== '') {
+        handleSend(userInput);
+      }
+    }
   };
 
   return (
-    <div className='p-5 border border-border bg-muted/25 rounded-xl max-w-[34rem] w-full mt-3'>
+    <div className='p-5 border border-border bg-muted/25 mb-5 md:mb-0 rounded-xl max-w-[34rem] w-full mt-3'>
       <div className='flex gap-2 relative'>
         <textarea
           autoFocus
           placeholder='What do you have in mind?'
           className='outline-none bg-transparent border-transparent w-full h-24 max-h-48 resize-none placeholder:text-muted-foreground'
-          onChange={e => setUsetInput(e.target.value)}
+          value={userInput}
+          onChange={e => setUserInput(e.target.value)}
+          onKeyDown={handleEnterPress}
         />
         <div
           className={`
@@ -46,7 +53,7 @@ const PromptInput = () => {
           <Button
             size='icon'
             variant='special'
-            onClick={() => handleGenerate(userInput)}
+            onClick={() => handleSend(userInput)}
           >
             <ArrowRight
               className='size-6'
@@ -55,7 +62,7 @@ const PromptInput = () => {
           </Button>
         </div>
       </div>
-      <div>
+      <div className='flex items-center justify-between'>
         <Hint
           label='Upload file'
           side='bottom'
@@ -70,6 +77,19 @@ const PromptInput = () => {
             />
           </Button>
         </Hint>
+        {userInput && (
+          <p className='text-xs text-muted-foreground font-light'>
+            Use{' '}
+            <span className='bg-muted p-1 px-1.5 rounded-md text-primary'>
+              Shift
+            </span>{' '}
+            +{' '}
+            <span className='bg-muted p-1 px-1.5 rounded-md text-primary'>
+              Enter
+            </span>{' '}
+            for a new line
+          </p>
+        )}
       </div>
     </div>
   );
