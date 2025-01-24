@@ -12,14 +12,21 @@ export const Users = Table('users', {
 
 export const Chats = Table('chats', {
   prompt: v.string(),
-  messages: v.any(), //JSON DATA
   fileData: v.optional(v.any()),
   userId: v.id('users'),
+});
+
+export const Messages = Table('messages', {
+  role: v.union(v.literal('user'), v.literal('model')),
+  content: v.string(),
+  chatId: v.id('chats'),
 });
 
 const schema = defineSchema({
   ...authTables,
   users: Users.table.index('email', ['email']),
+  chats: Chats.table.index('userId', ['userId']),
+  messages: Messages.table.index('chatId', ['chatId']),
 });
 
 export default schema;
