@@ -22,6 +22,9 @@ const ChatView = () => {
   const generateGeminiResponse = useAction(api.gemini.generateResponse);
   const createMessage = useMutation(api.messages.createMessage);
 
+  //For having a loading state when I am redirected from the home-page (can't use isLoading)
+  const redirectedLoading = messages?.length === 1;
+
   const sendMessage = async (prompt: string) => {
     setUserInput('');
     await createMessage({ role: 'user', content: prompt, chatId });
@@ -83,7 +86,7 @@ const ChatView = () => {
             </li>
           ))
         )}
-        {isLoading && (
+        {(isLoading || redirectedLoading) && (
           <p className='flex items-center gap-1.5 justify-center text-sm pt-1 animate-pulse'>
             <Sparkles
               className='size-4'
