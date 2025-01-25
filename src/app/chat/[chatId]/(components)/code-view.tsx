@@ -7,24 +7,37 @@ import {
   SandpackPreview,
   SandpackFileExplorer,
 } from '@codesandbox/sandpack-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Loader } from 'lucide-react';
+import { useQuery } from 'convex/react';
 
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DEFAULT_FILES, DEPENDENCIES } from '@/lib/consts';
+import { api } from '../../../../../convex/_generated/api';
+import { Id } from '../../../../../convex/_generated/dataModel';
 
-const CodeView = () => {
+type CodeViewProps = {
+  chatId: Id<'chats'>;
+  isLoading: boolean;
+};
+
+const CodeView = ({ chatId, isLoading }: CodeViewProps) => {
   const [activeView, setActiveView] = useState<'editor' | 'preview'>('editor');
-  const [files, setFiles] = useState<{ [filePath: string]: { code: string } }>(
-    DEFAULT_FILES
-  );
+
+  const chat = useQuery(api.chats.getChat, { chatId });
+  const mergedFiles = { ...DEFAULT_FILES, ...chat?.fileData };
+
+  useEffect(() => {
+    if (isLoading) setActiveView('editor');
+  }, [isLoading]);
 
   return (
-    <section className='col-span-full md:col-span-4 lg:col-span-5'>
+    <section className='relative col-span-full md:col-span-4 lg:col-span-5'>
       <div className='bg-[#101010] border border-b-0 border-border rounded-t-lg p-2  max-h-[6vh]'>
         <Tabs
-          defaultValue={activeView}
           className='w-[200px]'
           onValueChange={val => setActiveView(val as 'editor' | 'preview')}
+          value={activeView}
         >
           <TabsList className='grid w-full grid-cols-2 bg-muted/25'>
             <TabsTrigger value='editor'>Code</TabsTrigger>
@@ -33,9 +46,8 @@ const CodeView = () => {
         </Tabs>
       </div>
       <SandpackProvider
-        template='react'
         theme='dark'
-        files={files}
+        files={mergedFiles}
         customSetup={{
           dependencies: {
             ...DEPENDENCIES,
@@ -77,6 +89,14 @@ const CodeView = () => {
           )}
         </SandpackLayout>
       </SandpackProvider>
+      {isLoading && (
+        <div className='w-full h-full absolute top-0 left-0 flex items-center justify-center rounded-lg bg-background/50'>
+          <div className='flex items-center gap-2 animate-pulse'>
+            <Loader className='size-5 animate-spin ' />
+            <p>Generating your code</p>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
