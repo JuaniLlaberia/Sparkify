@@ -2,21 +2,33 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useMutation } from 'convex/react';
+import { useAction, useConvexAuth, useMutation } from 'convex/react';
 import { toast } from 'sonner';
 
 import PromptInput from '../promp-input';
 import SuggestionsCards from './suggestions-cards';
+import AuthDialog from './auth-dialog';
 import { AnimatedShinyText } from '@/components/ui/animated-shiny-text';
 import { cn } from '@/lib/utils';
 import { api } from '../../../../convex/_generated/api';
 
 const Hero = () => {
-  const [userInput, setUsetInput] = useState<string>('');
   const router = useRouter();
+  const [userInput, setUserInput] = useState<string>('');
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState<boolean>(false);
+
+  const { isLoading, isAuthenticated } = useConvexAuth();
+
   const createChat = useMutation(api.chats.createChat);
+  const generateGeminiResponse = useAction(api.gemini.generateResponse);
 
   const handleGenerate = async (prompt: string) => {
+    if (!isAuthenticated && !isLoading) {
+      setIsAuthDialogOpen(true);
+      return;
+    }
+
+    setUserInput('');
     try {
       const chatId = await createChat({
         prompt,
@@ -25,6 +37,12 @@ const Hero = () => {
 
       router.push(`/chat/${chatId}`);
       toast.success('Chat created successfully');
+
+      void generateGeminiResponse({
+        prompt,
+        chatId,
+        history: [],
+      });
     } catch {
       toast.error('Failed to create chat');
     }
@@ -47,13 +65,18 @@ const Hero = () => {
       <p className='text-muted-foreground font-medium text-base md:text-lg mt-1'>
         Prompt, run, edit, and deploy full-stack web apps.
       </p>
-
       <PromptInput
         handleSend={handleGenerate}
         userInput={userInput}
-        setUserInput={setUsetInput}
+        setUserInput={setUserInput}
       />
-      <SuggestionsCards />
+      <SuggestionsCards handleSend={handleGenerate} />
+
+      {/* Dialog for when the user is not authenticated */}
+      <AuthDialog
+        isOpen={isAuthDialogOpen}
+        setIsOpen={setIsAuthDialogOpen}
+      />
     </div>
   );
 };
