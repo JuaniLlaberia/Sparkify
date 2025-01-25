@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuthActions } from '@convex-dev/auth/react';
-import { type ReactElement } from 'react';
+import type { Dispatch, SetStateAction, ReactElement } from 'react';
 
 import {
   Dialog,
@@ -16,17 +16,20 @@ import { GitHubLogo } from '../github-logo';
 import { GoogleLogo } from '../google-logo';
 
 type AuthDialogProps = {
+  isOpen: boolean;
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
   trigger?: ReactElement;
 };
 
-const AuthDialog = ({ trigger }: AuthDialogProps) => {
+const AuthDialog = ({ isOpen, setIsOpen, trigger }: AuthDialogProps) => {
   const { signIn } = useAuthActions();
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        {trigger || <Button size='sm'>Sign In</Button>}
-      </DialogTrigger>
+    <Dialog
+      open={isOpen}
+      onOpenChange={setIsOpen}
+    >
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <div className='space-y-1 flex flex-col items-center mb-4'>
           <DialogTitle className='text-2xl'>Welcome to Sparkify</DialogTitle>
