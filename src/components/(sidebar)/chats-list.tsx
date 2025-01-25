@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useQuery } from 'convex/react';
+import { usePathname } from 'next/navigation';
 import { MessageSquare, MoreHorizontal } from 'lucide-react';
 
 import ChatsActons from './chats-actions';
@@ -17,6 +18,7 @@ import { Skeleton } from '../ui/skeleton';
 
 export const ChatsList = () => {
   const chats = useQuery(api.chats.getUserChats);
+  const pathname = usePathname();
 
   return (
     <SidebarGroup className='group-data-[collapsible=icon]:hidden'>
@@ -43,7 +45,10 @@ export const ChatsList = () => {
         ) : chats.length > 0 ? (
           chats.map(chat => (
             <SidebarMenuItem key={chat._id}>
-              <SidebarMenuButton asChild>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.includes(chat._id)}
+              >
                 <Link href={`/chat/${chat._id}`}>
                   <MessageSquare className='size-4 mr-1.5' />
                   {chat.prompt}
