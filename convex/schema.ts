@@ -11,7 +11,7 @@ export const Users = Table('users', {
 });
 
 export const Chats = Table('chats', {
-  prompt: v.string(),
+  prompt: v.optional(v.string()),
   fileData: v.optional(v.any()),
   userId: v.id('users'),
 });
