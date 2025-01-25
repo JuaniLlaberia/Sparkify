@@ -1,9 +1,8 @@
 'use client';
 
 import { useAction, useMutation, useQuery } from 'convex/react';
-import { useParams } from 'next/navigation';
 import { Sparkles } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import PromptInput from '@/components/custom/promp-input';
@@ -12,15 +11,26 @@ import { api } from '../../../../../convex/_generated/api';
 import { Id } from '../../../../../convex/_generated/dataModel';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-const ChatView = () => {
+type ChatViewProps = {
+  chatId: Id<'chats'>;
+  isLoading: boolean;
+  handleChatLoader: Dispatch<SetStateAction<boolean>>;
+  handleCodeLoader: Dispatch<SetStateAction<boolean>>;
+};
+
+const ChatView = ({
+  chatId,
+  isLoading,
+  handleChatLoader,
+  handleCodeLoader,
+}: ChatViewProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [userInput, setUserInput] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { chatId } = useParams<{ chatId: Id<'chats'> }>();
 
   const messages = useQuery(api.messages.getMessages, { chatId });
-  const generateGeminiResponse = useAction(api.gemini.generateResponse);
   const createMessage = useMutation(api.messages.createMessage);
+  const generateGeminiMessage = useAction(api.gemini.generateGeminiMessage);
+  const generateGeminiCode = useAction(api.gemini.generateGeminiCode);
 
   //For having a loading state when I am redirected from the home-page (can't use isLoading)
   const redirectedLoading = messages?.length === 1;
@@ -30,20 +40,27 @@ const ChatView = () => {
     await createMessage({ role: 'user', content: prompt, chatId });
 
     try {
-      setIsLoading(true);
-      await generateGeminiResponse({
+      handleChatLoader(true);
+      handleCodeLoader(true);
+
+      const history = messages?.map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.content }],
+      }))!;
+
+      generateGeminiMessage({
         prompt,
         chatId,
-        history: messages?.map(msg => ({
-          role: msg.role === 'user' ? 'user' : 'model',
-          parts: [{ text: msg.content }],
-        }))!,
-      });
-    } catch (e) {
-      console.log(e);
+        history,
+      }).then(() => handleChatLoader(false));
+
+      generateGeminiCode({
+        prompt,
+        chatId,
+        history,
+      }).then(() => handleCodeLoader(false));
+    } catch {
       toast.error('Something went wrong! Try again please');
-    } finally {
-      setIsLoading(false);
     }
   };
 

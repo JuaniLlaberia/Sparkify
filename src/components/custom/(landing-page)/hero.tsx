@@ -20,7 +20,8 @@ const Hero = () => {
   const { isLoading, isAuthenticated } = useConvexAuth();
 
   const createChat = useMutation(api.chats.createChat);
-  const generateGeminiResponse = useAction(api.gemini.generateResponse);
+  const generateGeminiMessage = useAction(api.gemini.generateGeminiMessage);
+  const generateGeminiCode = useAction(api.gemini.generateGeminiCode);
 
   const handleGenerate = async (prompt: string) => {
     if (!isAuthenticated && !isLoading) {
@@ -38,7 +39,12 @@ const Hero = () => {
       router.push(`/chat/${chatId}`);
       toast.success('Chat created successfully');
 
-      void generateGeminiResponse({
+      void generateGeminiMessage({
+        prompt,
+        chatId,
+        history: [],
+      });
+      void generateGeminiCode({
         prompt,
         chatId,
         history: [],
