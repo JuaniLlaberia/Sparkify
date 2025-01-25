@@ -16,6 +16,8 @@ export const DEPENDENCIES = {
   'lucide-react': '^0.469.0',
   'react-router-dom': '^7.1.1',
   'date-fns': '^4.1.0',
+  'react-chartjs-2': '^5.3.0',
+  'chart.js': '^4.4.7',
 };
 
 export const DEFAULT_FILES = {
@@ -33,34 +35,112 @@ export const DEFAULT_FILES = {
 </body>
 </html>`,
   },
-  '/App.css': {
-    code: `
-          @tailwind base;
+  '/src/App.tsx': {
+    code: `import React from 'react';
+
+function App() {
+  return (
+    <div className="p-4">
+      <h1 className="text-2xl font-bold">Hello, Tailwind React!</h1>
+    </div>
+  );
+}
+
+export default App;`,
+    active: true,
+  },
+  '/src/index.tsx': {
+    code: `import React from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App';
+import './index.css';
+
+const root = createRoot(document.getElementById('root')!);
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);`,
+  },
+  '/src/index.css': {
+    code: `@tailwind base;
 @tailwind components;
 @tailwind utilities;`,
   },
-  '/tailwind.config.js': {
-    code: `
-          /** @type {import('tailwindcss').Config} */
-module.exports = {
-content: [
-  "./src/**/*.{js,jsx,ts,tsx}",
-],
-theme: {
-  extend: {},
-},
-plugins: [],
-}`,
+  '/tailwind.config.ts': {
+    code: `import type { Config } from 'tailwindcss';
+
+const config: Config = {
+  content: [
+    "./src/**/*.{js,jsx,ts,tsx}",
+  ],
+  theme: {
+    extend: {},
   },
-  '/postcss.config.js': {
-    code: `/** @type {import('postcss-load-config').Config} */
-const config = {
-plugins: {
-  tailwindcss: {},
-},
+  plugins: [],
 };
 
-export default config;
-`,
+export default config;`,
+  },
+  '/postcss.config.ts': {
+    code: `import type { Config } from 'postcss-load-config';
+
+const config: Config = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+
+export default config;`,
+  },
+  '/package.json': {
+    code: JSON.stringify(
+      {
+        dependencies: {
+          react: '^18.2.0',
+          'react-dom': '^18.2.0',
+          tailwindcss: '^3.3.0',
+          postcss: '^8.4.0',
+          autoprefixer: '^10.4.0',
+        },
+        devDependencies: {
+          '@types/react': '^18.0.0',
+          '@types/react-dom': '^18.0.0',
+          typescript: '^4.9.5',
+        },
+        scripts: {
+          start: 'react-scripts start',
+          build: 'react-scripts build',
+        },
+      },
+      null,
+      2
+    ),
+  },
+  '/tsconfig.json': {
+    code: JSON.stringify(
+      {
+        compilerOptions: {
+          target: 'es5',
+          lib: ['dom', 'dom.iterable', 'esnext'],
+          allowJs: true,
+          skipLibCheck: true,
+          esModuleInterop: true,
+          allowSyntheticDefaultImports: true,
+          strict: true,
+          forceConsistentCasingInFileNames: true,
+          module: 'esnext',
+          moduleResolution: 'node',
+          resolveJsonModule: true,
+          isolatedModules: true,
+          noEmit: true,
+          jsx: 'react-jsx',
+        },
+        include: ['src'],
+      },
+      null,
+      2
+    ),
   },
 };
