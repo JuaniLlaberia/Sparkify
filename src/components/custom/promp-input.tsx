@@ -35,7 +35,7 @@ const PromptInput = ({
         <textarea
           autoFocus
           placeholder='What do you have in mind?'
-          className='outline-none bg-transparent border-transparent w-full h-24 max-h-48 resize-none placeholder:text-muted-foreground'
+          className='outline-none bg-transparent border-transparent w-full pr-10 h-24 max-h-48 resize-none placeholder:text-muted-foreground'
           value={userInput}
           onChange={e => setUserInput(e.target.value)}
           onKeyDown={handleEnterPress}
