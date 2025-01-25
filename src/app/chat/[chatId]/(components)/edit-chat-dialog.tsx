@@ -48,13 +48,13 @@ const EditChatDialog = ({
     setIsLoading(true);
 
     try {
-      await updateChat({ chatId, name });
+      await updateChat({ chatId, chatData: { prompt: name } });
 
       onSuccess?.();
-      toast.success('Message deleted successfully');
+      toast.success('Chat updated successfully');
       setIsOpen(false);
     } catch {
-      toast.error('Failed to delete chat');
+      toast.error('Failed to update chat');
     } finally {
       setIsLoading(false);
     }
