@@ -1,8 +1,9 @@
 import { ConvexError, v } from 'convex/values';
+import { omit } from 'convex-helpers';
 
 import { mutation, MutationCtx, query, QueryCtx } from './_generated/server';
 import { isAuth } from './helper';
-import { Messages } from './schema';
+import { Chats, Messages } from './schema';
 import { Id } from './_generated/dataModel';
 import { paginationOptsValidator } from 'convex/server';
 
@@ -87,14 +88,17 @@ export const createChat = mutation({
 });
 
 export const updateChat = mutation({
-  args: { chatId: v.id('chats'), name: v.string() },
-  handler: async (ctx, { chatId, name }) => {
+  args: {
+    chatId: v.id('chats'),
+    chatData: v.object(omit(Chats.withoutSystemFields, ['userId'])),
+  },
+  handler: async (ctx, { chatId, chatData }) => {
     const user = await isAuth(ctx);
     if (!user) throw new ConvexError('You must be logged in to update a chat');
 
     chatBelongsToUser(ctx, chatId, user?._id);
 
-    await ctx.db.patch(chatId, { prompt: name });
+    await ctx.db.patch(chatId, { ...chatData });
   },
 });
 
