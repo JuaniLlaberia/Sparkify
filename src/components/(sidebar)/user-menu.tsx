@@ -3,8 +3,10 @@
 import Link from 'next/link';
 import { useAuthActions } from '@convex-dev/auth/react';
 import { BookOpen, ChevronsUpDown, LogOut, Settings } from 'lucide-react';
+import { useState } from 'react';
 import { useQuery } from 'convex/react';
 
+import SettignsDialog from '../custom/(settings)/settings-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -25,6 +27,7 @@ import { Skeleton } from '../ui/skeleton';
 
 export const UserMenu = () => {
   const user = useQuery(api.users.currentUser);
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
 
   const { isMobile } = useSidebar();
   const { signOut } = useAuthActions();
@@ -42,7 +45,10 @@ export const UserMenu = () => {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
+        <DropdownMenu
+          open={isDropdownOpen}
+          onOpenChange={setIsDropdownOpen}
+        >
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size='lg'
@@ -101,15 +107,18 @@ export const UserMenu = () => {
                 Library
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href='/chat/settings'>
-                <Settings
-                  className='size-4 mr-2'
-                  strokeWidth={1.5}
-                />
-                Settings
-              </Link>
-            </DropdownMenuItem>
+            <SettignsDialog
+              onSuccess={() => setIsDropdownOpen(false)}
+              trigger={
+                <DropdownMenuItem onSelect={e => e.preventDefault()}>
+                  <Settings
+                    className='size-4 mr-2'
+                    strokeWidth={1.5}
+                  />
+                  Settings
+                </DropdownMenuItem>
+              }
+            />
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOut}>
               <LogOut
