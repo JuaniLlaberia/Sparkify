@@ -11,11 +11,13 @@ import AuthDialog from './auth-dialog';
 import { AnimatedShinyText } from '@/components/ui/animated-shiny-text';
 import { cn } from '@/lib/utils';
 import { api } from '../../../../convex/_generated/api';
+import { useLoaders } from '@/context/loaders-context';
 
 const Hero = () => {
   const router = useRouter();
   const [userInput, setUserInput] = useState<string>('');
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState<boolean>(false);
+  const { setIsLoadingCode, setIsLoadingMessage } = useLoaders();
 
   const { isLoading, isAuthenticated } = useConvexAuth();
 
@@ -30,6 +32,8 @@ const Hero = () => {
     }
 
     setUserInput('');
+    setIsLoadingMessage(true);
+    setIsLoadingCode(true);
     try {
       const chatId = await createChat({
         prompt,
@@ -39,16 +43,16 @@ const Hero = () => {
       router.push(`/chat/${chatId}`);
       toast.success('Chat created successfully');
 
-      void generateGeminiMessage({
+      generateGeminiMessage({
         prompt,
         chatId,
         history: [],
-      });
-      void generateGeminiCode({
+      }).then(() => setIsLoadingMessage(false));
+      generateGeminiCode({
         prompt,
         chatId,
         history: [],
-      });
+      }).then(() => setIsLoadingCode(false));
     } catch {
       toast.error('Failed to create chat');
     }

@@ -15,21 +15,22 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DEFAULT_FILES, DEPENDENCIES } from '@/lib/consts';
 import { api } from '../../../../../convex/_generated/api';
 import { Id } from '../../../../../convex/_generated/dataModel';
+import { useLoaders } from '@/context/loaders-context';
 
 type CodeViewProps = {
   chatId: Id<'chats'>;
-  isLoading: boolean;
 };
 
-const CodeView = ({ chatId, isLoading }: CodeViewProps) => {
+const CodeView = ({ chatId }: CodeViewProps) => {
   const [activeView, setActiveView] = useState<'editor' | 'preview'>('editor');
+  const { isLoadingCode } = useLoaders();
 
   const chat = useQuery(api.chats.getChat, { chatId });
   const mergedFiles = { ...DEFAULT_FILES, ...chat?.fileData };
 
   useEffect(() => {
-    if (isLoading) setActiveView('editor');
-  }, [isLoading]);
+    if (isLoadingCode) setActiveView('editor');
+  }, [isLoadingCode]);
 
   return (
     <section className='relative col-span-full md:col-span-4 lg:col-span-5'>
@@ -89,8 +90,8 @@ const CodeView = ({ chatId, isLoading }: CodeViewProps) => {
           )}
         </SandpackLayout>
       </SandpackProvider>
-      {isLoading && (
-        <div className='w-full h-full absolute top-0 left-0 flex items-center justify-center rounded-lg bg-background/50'>
+      {isLoadingCode && (
+        <div className='w-full h-full absolute top-0 left-0 flex items-center justify-center rounded-lg bg-background/50 border border-border'>
           <div className='flex items-center gap-2 animate-pulse'>
             <Loader className='size-5 animate-spin ' />
             <p>Generating your code</p>

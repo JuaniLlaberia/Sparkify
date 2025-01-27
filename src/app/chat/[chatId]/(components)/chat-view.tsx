@@ -10,38 +10,30 @@ import MessagesLoader from './messages-loader';
 import { api } from '../../../../../convex/_generated/api';
 import { Id } from '../../../../../convex/_generated/dataModel';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useLoaders } from '@/context/loaders-context';
 
 type ChatViewProps = {
   chatId: Id<'chats'>;
-  isLoading: boolean;
-  handleChatLoader: Dispatch<SetStateAction<boolean>>;
-  handleCodeLoader: Dispatch<SetStateAction<boolean>>;
 };
 
-const ChatView = ({
-  chatId,
-  isLoading,
-  handleChatLoader,
-  handleCodeLoader,
-}: ChatViewProps) => {
+const ChatView = ({ chatId }: ChatViewProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [userInput, setUserInput] = useState<string>('');
+  const { setIsLoadingCode, setIsLoadingMessage, isLoadingMessage } =
+    useLoaders();
 
   const messages = useQuery(api.messages.getMessages, { chatId });
   const createMessage = useMutation(api.messages.createMessage);
   const generateGeminiMessage = useAction(api.gemini.generateGeminiMessage);
   const generateGeminiCode = useAction(api.gemini.generateGeminiCode);
 
-  //For having a loading state when I am redirected from the home-page (can't use isLoading)
-  const redirectedLoading = messages?.length === 1;
-
   const sendMessage = async (prompt: string) => {
     setUserInput('');
     await createMessage({ role: 'user', content: prompt, chatId });
 
     try {
-      handleChatLoader(true);
-      handleCodeLoader(true);
+      setIsLoadingMessage(true);
+      setIsLoadingCode(true);
 
       const history = messages?.map(msg => ({
         role: msg.role === 'user' ? 'user' : 'model',
@@ -52,13 +44,13 @@ const ChatView = ({
         prompt,
         chatId,
         history,
-      }).then(() => handleChatLoader(false));
+      }).then(() => setIsLoadingMessage(false));
 
       generateGeminiCode({
         prompt,
         chatId,
         history,
-      }).then(() => handleCodeLoader(false));
+      }).then(() => setIsLoadingCode(false));
     } catch {
       toast.error('Something went wrong! Try again please');
     }
@@ -103,7 +95,7 @@ const ChatView = ({
             </li>
           ))
         )}
-        {(isLoading || redirectedLoading) && (
+        {isLoadingMessage && (
           <p className='flex items-center gap-1.5 justify-center text-sm pt-1 animate-pulse'>
             <Sparkles
               className='size-4'

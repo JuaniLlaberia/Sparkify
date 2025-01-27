@@ -1,10 +1,11 @@
 'use client';
 
-import { ArrowRight, Link } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import type { Dispatch, KeyboardEvent, SetStateAction } from 'react';
 
-import Hint from '../ui/hint';
 import { Button } from '../ui/button';
+import FileSelector from './file-selector';
+import { useLoaders } from '@/context/loaders-context';
 
 type PromptInputProps = {
   handleSend: (input: string) => void;
@@ -17,6 +18,8 @@ const PromptInput = ({
   userInput,
   setUserInput,
 }: PromptInputProps) => {
+  const { isLoadingMessage } = useLoaders();
+
   const handleEnterPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -54,6 +57,7 @@ const PromptInput = ({
             size='icon'
             variant='special'
             onClick={() => handleSend(userInput)}
+            disabled={isLoadingMessage}
           >
             <ArrowRight
               className='size-6'
@@ -63,20 +67,7 @@ const PromptInput = ({
         </div>
       </div>
       <div className='flex items-center justify-between'>
-        <Hint
-          label='Upload file'
-          side='bottom'
-        >
-          <Button
-            variant='ghost'
-            size='icon'
-          >
-            <Link
-              className='size-4'
-              strokeWidth={2.5}
-            />
-          </Button>
-        </Hint>
+        <FileSelector />
         {userInput && (
           <p className='text-xs text-muted-foreground font-light'>
             Use{' '}

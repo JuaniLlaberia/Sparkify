@@ -5,12 +5,12 @@ import { GeistSans } from 'geist/font/sans';
 import type { Metadata } from 'next';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { MessagesProvider } from '@/context/messages-context';
 import { ConvexAuthNextjsServerProvider } from '@convex-dev/auth/nextjs/server';
 import { ConvexClientProvider } from '@/components/custom/convex-client-provider';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/(sidebar)/sidebar';
 import './globals.css';
+import { LoadersProvider } from '@/context/loaders-context';
 
 export const metadata: Metadata = {
   title: 'Create Next App',
@@ -30,7 +30,10 @@ export default function RootLayout({
             showSpinner={false}
             color='#8E51FF'
           />
-          <Toaster richColors />
+          <Toaster
+            richColors
+            theme='dark'
+          />
           <ThemeProvider
             attribute='class'
             defaultTheme='dark'
@@ -38,7 +41,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <TooltipProvider delayDuration={50}>
-              <MessagesProvider>
+              <LoadersProvider>
                 <main className='min-h-screen text-primary'>
                   <div className='absolute left-0 right-0 -top-20 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-violet-400 opacity-20 blur-[100px]'></div>
                   <ConvexClientProvider>
@@ -48,7 +51,7 @@ export default function RootLayout({
                     </SidebarProvider>
                   </ConvexClientProvider>
                 </main>
-              </MessagesProvider>
+              </LoadersProvider>
             </TooltipProvider>
           </ThemeProvider>
         </body>
