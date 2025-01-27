@@ -43,6 +43,7 @@ export const createMessage = mutation({
 
     return await ctx.db.insert('messages', {
       ...args,
+      userId: user._id,
     });
   },
 });

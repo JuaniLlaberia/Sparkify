@@ -81,6 +81,7 @@ export const createChat = mutation({
       role,
       content,
       chatId,
+      userId: user._id,
     });
 
     return chatId;
@@ -118,5 +119,29 @@ export const deleteChat = mutation({
     await Promise.all(
       messagesToDelete.map(message => ctx.db.delete(message._id))
     );
+  },
+});
+
+export const deleteAllUserChats = mutation({
+  args: {},
+  handler: async ctx => {
+    const user = await isAuth(ctx);
+    if (!user)
+      throw new ConvexError('You must be logged in to delete your chats');
+
+    const chats = await ctx.db
+      .query('chats')
+      .withIndex('userId', q => q.eq('userId', user._id))
+      .collect();
+
+    const messages = await ctx.db
+      .query('messages')
+      .withIndex('userId', q => q.eq('userId', user._id))
+      .collect();
+
+    await Promise.all([
+      ...messages.map(message => ctx.db.delete(message._id)),
+      ...chats.map(chat => ctx.db.delete(chat._id)),
+    ]);
   },
 });
