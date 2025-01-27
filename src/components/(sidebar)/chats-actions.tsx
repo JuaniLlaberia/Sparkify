@@ -52,7 +52,7 @@ const ChatsActions = ({ chatData, showOnHover = true }: ChatsActionsProps) => {
       >
         <EditChatDialog
           chatId={chatData._id}
-          defaultName={chatData.prompt}
+          defaultName={chatData.prompt || 'New Chat'}
           onSuccess={() => setIsDropdownOpen(false)}
           trigger={
             <DropdownMenuItem onSelect={e => e.preventDefault()}>
