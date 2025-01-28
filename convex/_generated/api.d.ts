@@ -19,6 +19,7 @@ import type * as gemini from "../gemini.js";
 import type * as helper from "../helper.js";
 import type * as http from "../http.js";
 import type * as messages from "../messages.js";
+import type * as upload from "../upload.js";
 import type * as users from "../users.js";
 
 /**
@@ -36,6 +37,7 @@ declare const fullApi: ApiFromModules<{
   helper: typeof helper;
   http: typeof http;
   messages: typeof messages;
+  upload: typeof upload;
   users: typeof users;
 }>;
 export declare const api: FilterApi<
