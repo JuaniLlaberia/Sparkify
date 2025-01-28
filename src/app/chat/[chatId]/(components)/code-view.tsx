@@ -35,6 +35,8 @@ const CodeView = ({ chatId }: CodeViewProps) => {
   }, [isLoadingCode]);
 
   useEffect(() => {
+    if (action === undefined) return;
+
     setActiveView('preview');
   }, [action]);
 
