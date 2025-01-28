@@ -51,7 +51,7 @@ export const ChatsList = () => {
               >
                 <Link href={`/chat/${chat._id}`}>
                   <MessageSquare className='size-4 mr-1.5' />
-                  {chat.prompt}
+                  <span className='line-clamp-2'>{chat.prompt}</span>
                 </Link>
               </SidebarMenuButton>
               <ChatsActons chatData={chat} />
