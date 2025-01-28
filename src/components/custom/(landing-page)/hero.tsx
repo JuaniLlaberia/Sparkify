@@ -12,10 +12,14 @@ import { AnimatedShinyText } from '@/components/ui/animated-shiny-text';
 import { cn } from '@/lib/utils';
 import { api } from '../../../../convex/_generated/api';
 import { useLoaders } from '@/context/loaders-context';
+import { convertImageToBase64 } from '@/lib/helpers';
+import { Id } from '../../../../convex/_generated/dataModel';
 
 const Hero = () => {
   const router = useRouter();
   const [userInput, setUserInput] = useState<string>('');
+  const [userImage, setUserImage] = useState<File>();
+  const [isUploadingImg, setIsUploadingImg] = useState<boolean>(false);
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState<boolean>(false);
   const { setIsLoadingCode, setIsLoadingMessage } = useLoaders();
 
@@ -24,6 +28,7 @@ const Hero = () => {
   const createChat = useMutation(api.chats.createChat);
   const generateGeminiMessage = useAction(api.gemini.generateGeminiMessage);
   const generateGeminiCode = useAction(api.gemini.generateGeminiCode);
+  const generateUploadUrl = useMutation(api.upload.generateUploadUrl);
 
   const handleGenerate = async (prompt: string) => {
     if (!isAuthenticated && !isLoading) {
@@ -31,28 +36,73 @@ const Hero = () => {
       return;
     }
 
-    setUserInput('');
-    setIsLoadingMessage(true);
-    setIsLoadingCode(true);
     try {
+      let imageDB:
+        | {
+            storageId: Id<'_storage'>;
+            name: string;
+            size: number;
+          }
+        | undefined;
+      let imageBase64: string | undefined;
+
+      // Proccess image in case we have one
+      if (userImage) {
+        setIsUploadingImg(true);
+
+        try {
+          const uploadUrl = await generateUploadUrl();
+          const result = await fetch(uploadUrl, {
+            method: 'POST',
+            body: userImage,
+          });
+          const { storageId } = await result.json();
+          imageDB = {
+            storageId,
+            name: userImage.name,
+            size: userImage.size,
+          };
+
+          imageBase64 = await convertImageToBase64(userImage);
+
+          setIsUploadingImg(false);
+          setUserInput('');
+        } catch (error) {
+          toast.error('Failed to upload/process image');
+          return;
+        } finally {
+          setUserImage(undefined);
+        }
+      } else {
+        setUserInput('');
+      }
+
+      setIsLoadingMessage(true);
+      setIsLoadingCode(true);
+
       const chatId = await createChat({
         prompt,
+        image: imageDB,
         message: { role: 'user', content: prompt },
       });
 
       router.push(`/chat/${chatId}`);
       toast.success('Chat created successfully');
 
-      generateGeminiMessage({
-        prompt,
-        chatId,
-        history: [],
-      }).then(() => setIsLoadingMessage(false));
-      generateGeminiCode({
-        prompt,
-        chatId,
-        history: [],
-      }).then(() => setIsLoadingCode(false));
+      await Promise.all([
+        generateGeminiMessage({
+          prompt,
+          chatId,
+          history: [],
+        }).then(() => setIsLoadingMessage(false)),
+
+        generateGeminiCode({
+          prompt,
+          image: imageBase64,
+          chatId,
+          history: [],
+        }).then(() => setIsLoadingCode(false)),
+      ]);
     } catch (error) {
       const errorMessage =
         error instanceof Error && error.message.includes('Insufficient credits')
@@ -84,6 +134,9 @@ const Hero = () => {
         handleSend={handleGenerate}
         userInput={userInput}
         setUserInput={setUserInput}
+        userImage={userImage}
+        setUserImage={setUserImage}
+        isUploading={isUploadingImg}
       />
       <SuggestionsCards handleSend={handleGenerate} />
 
