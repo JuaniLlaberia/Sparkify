@@ -3,6 +3,7 @@ import { ConvexError, v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { Messages } from './schema';
 import { isAuth } from './helper';
+import { Id } from './_generated/dataModel';
 
 export const getMessages = query({
   args: { chatId: v.id('chats') },
@@ -17,11 +18,20 @@ export const getMessages = query({
       .collect();
 
     const messagesWithImage = await Promise.all(
-      messages.map(message => {
+      messages.map(async message => {
+        const imageUrl = message.image
+          ? await ctx.storage.getUrl(message.image.storageId as Id<'_storage'>)
+          : undefined;
+
         return {
           ...message,
+          image: {
+            url: imageUrl,
+            name: message.image?.name,
+            size: message.image?.size,
+          },
           user: message.role === 'user' ? user.fullName : undefined,
-          image: message.role === 'user' ? user.image : undefined,
+          userImage: message.role === 'user' ? user.image : undefined,
         };
       })
     );
@@ -34,6 +44,13 @@ export const createMessage = mutation({
   args: {
     role: Messages.withoutSystemFields.role,
     content: v.string(),
+    image: v.optional(
+      v.object({
+        storageId: v.id('_storage'),
+        name: v.string(),
+        size: v.number(),
+      })
+    ),
     chatId: v.id('chats'),
   },
   handler: async (ctx, args) => {

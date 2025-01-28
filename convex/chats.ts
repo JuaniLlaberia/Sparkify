@@ -1,11 +1,11 @@
 import { ConvexError, v } from 'convex/values';
 import { omit } from 'convex-helpers';
+import { paginationOptsValidator } from 'convex/server';
 
 import { mutation, MutationCtx, query, QueryCtx } from './_generated/server';
 import { isAuth } from './helper';
 import { Chats, Messages } from './schema';
 import { Id } from './_generated/dataModel';
-import { paginationOptsValidator } from 'convex/server';
 
 const chatBelongsToUser = async (
   ctx: QueryCtx | MutationCtx,
@@ -63,12 +63,19 @@ export const getAllUserChatsPaginated = query({
 export const createChat = mutation({
   args: {
     prompt: v.string(),
+    image: v.optional(
+      v.object({
+        storageId: v.id('_storage'),
+        name: v.string(),
+        size: v.number(),
+      })
+    ),
     message: v.object({
       role: Messages.withoutSystemFields.role,
       content: v.string(),
     }),
   },
-  handler: async (ctx, { prompt, message: { role, content } }) => {
+  handler: async (ctx, { prompt, image, message: { role, content } }) => {
     const user = await isAuth(ctx);
     if (!user) throw new ConvexError('You must be logged in to create a chat');
 
@@ -80,6 +87,7 @@ export const createChat = mutation({
     await ctx.db.insert('messages', {
       role,
       content,
+      image,
       chatId,
       userId: user._id,
     });

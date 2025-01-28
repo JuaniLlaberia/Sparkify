@@ -1,14 +1,48 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, Part } from '@google/generative-ai';
 import { v } from 'convex/values';
 
 import { action } from './_generated/server';
 import { api } from './_generated/api';
 
-const countTokens = (input: string): number => {
-  return input
+const calculateImageTokens = async (base64String: string): Promise<number> => {
+  return new Promise(resolve => {
+    const img = new Image();
+
+    img.onload = () => {
+      // Calculate total pixels
+      const totalPixels = img.width * img.height;
+
+      // Estimate tokens based on image size
+      const sizeBasedTokens = Math.ceil(totalPixels * 0.5);
+
+      // Add base cost and return total
+      const totalTokens = 1024 + sizeBasedTokens;
+
+      resolve(totalTokens);
+    };
+
+    img.onerror = () => {
+      // If we can't load the image, return a conservative estimate
+      resolve(1024 * 2);
+    };
+
+    // Add the data URL prefix if it's not there
+    const imageUrl = base64String.startsWith('data:')
+      ? base64String
+      : `data:image/jpeg;base64,${base64String}`;
+
+    img.src = imageUrl;
+  });
+};
+
+const countTokens = async (input: string, image?: string): Promise<number> => {
+  const textTokens = input
     .trim()
     .split(/\s+/)
     .filter(word => word.length).length;
+  const imageTokens = image ? await calculateImageTokens(image) : 0;
+
+  return textTokens + imageTokens;
 };
 
 class GeminiService {
@@ -45,8 +79,11 @@ class GeminiService {
     });
   }
 
-  static estimateTokens(prompt: string, type: 'chat' | 'code'): number {
-    const promptTokens = countTokens(prompt);
+  static async estimateTokens(
+    prompt: string,
+    type: 'chat' | 'code'
+  ): Promise<number> {
+    const promptTokens = await countTokens(prompt);
     const baseTokens =
       type === 'chat' ? this.CHAT_PROMPT_TOKENS : this.CODE_PROMPT_TOKENS;
 
@@ -57,6 +94,7 @@ class GeminiService {
 export const generateGeminiMessage = action({
   args: {
     prompt: v.string(),
+    image: v.optional(v.string()),
     chatId: v.id('chats'),
     history: v.array(
       v.object({
@@ -65,14 +103,14 @@ export const generateGeminiMessage = action({
       })
     ),
   },
-  handler: async (ctx, { chatId, prompt, history = [] }) => {
+  handler: async (ctx, { chatId, prompt, image, history = [] }) => {
     const user = await ctx.runQuery(api.users.currentUser);
     if (!user)
       throw new Error(
         'You must be logged in to generate messages with gemini.'
       );
 
-    const estimatedTokens = GeminiService.estimateTokens(prompt, 'chat');
+    const estimatedTokens = await GeminiService.estimateTokens(prompt, 'chat');
     if (user.tokens < estimatedTokens) {
       throw new Error(
         `Insufficient tokens. Required: ${estimatedTokens}, Available: ${user.tokens}`
@@ -89,13 +127,29 @@ export const generateGeminiMessage = action({
             - When explanning or saying what it's being done talk like you where doing it, not the user.
             - Response less than 20 lines. 
             - Skip code examples and commentary.'
+            - If user provides image, explain it in 2/3 lines.
 
           This is the user prompt: ${prompt} 
 `;
     const chatSession = chatModel.startChat({ history });
-    const chatResponse = await chatSession.sendMessage(CHAT_PROMPT);
 
-    const tokensUsed = countTokens(CHAT_PROMPT + chatResponse.response.text());
+    const parts: Part[] = [{ text: CHAT_PROMPT }];
+    if (image) {
+      const imagePart: Part = {
+        inlineData: {
+          mimeType: 'image/*',
+          data: image,
+        },
+      };
+
+      parts.unshift(imagePart);
+    }
+
+    const chatResponse = await chatSession.sendMessage(parts);
+
+    const tokensUsed = await countTokens(
+      CHAT_PROMPT + chatResponse.response.text()
+    );
 
     await Promise.all([
       ctx.runMutation(api.messages.createMessage, {
@@ -117,6 +171,7 @@ export const generateGeminiMessage = action({
 export const generateGeminiCode = action({
   args: {
     prompt: v.string(),
+    image: v.optional(v.string()),
     chatId: v.id('chats'),
     history: v.array(
       v.object({
@@ -125,14 +180,14 @@ export const generateGeminiCode = action({
       })
     ),
   },
-  handler: async (ctx, { chatId, prompt, history = [] }) => {
+  handler: async (ctx, { chatId, image, prompt, history = [] }) => {
     const user = await ctx.runQuery(api.users.currentUser);
     if (!user)
       throw new Error(
         'You must be logged in to generate messages with gemini.'
       );
 
-    const estimatedTokens = GeminiService.estimateTokens(prompt, 'code');
+    const estimatedTokens = await GeminiService.estimateTokens(prompt, 'code');
     if (user.tokens < estimatedTokens) {
       throw new Error(
         `Insufficient tokens. Required: ${estimatedTokens}, Available: ${user.tokens}`
@@ -173,14 +228,30 @@ export const generateGeminiCode = action({
           - By default, this template supports TSX syntax with Tailwind CSS classes, React hooks, and Lucide React for icons. Do not install other packages for UI themes, icons, etc unless absolutely necessary or I request them.
           - Use icons from lucide-react for logos.
           - Use stock photos from unsplash where appropriate, only valid URLs you know exist. Do not download the images, only link to them in image tags.
-          - If possible keep the project structure you generated
+          - If possible keep the project structure you generated and just make the modification that the user asks.
+          - In case a image is provided try to recreate it.
     
             This is the user prompt: ${prompt}
         `;
     const codeSession = codeModel.startChat({ history });
-    const codeResponse = await codeSession.sendMessage(CODE_PROMPT);
 
-    const tokensUsed = countTokens(CODE_PROMPT + codeResponse.response.text());
+    const parts: Part[] = [{ text: CODE_PROMPT }];
+    if (image) {
+      const imagePart: Part = {
+        inlineData: {
+          mimeType: 'image/*',
+          data: image,
+        },
+      };
+
+      parts.unshift(imagePart);
+    }
+
+    const codeResponse = await codeSession.sendMessage(parts);
+
+    const tokensUsed = await countTokens(
+      CODE_PROMPT + codeResponse.response.text()
+    );
 
     await Promise.all([
       ctx.runMutation(api.chats.updateChat, {
