@@ -24,7 +24,7 @@ const ChatsTable = () => {
   );
 
   const filteredResults = results.filter(result =>
-    result.prompt.toLowerCase().includes(searchTerm.toLowerCase())
+    result.prompt?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
