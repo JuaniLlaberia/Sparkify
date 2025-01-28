@@ -64,7 +64,7 @@ const ChatView = ({ chatId }: ChatViewProps) => {
 
           setIsUploadingImg(false);
           setUserInput('');
-        } catch (error) {
+        } catch {
           toast.error('Failed to upload/process image');
           return;
         } finally {
