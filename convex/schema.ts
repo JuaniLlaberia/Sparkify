@@ -20,6 +20,13 @@ export const Chats = Table('chats', {
 export const Messages = Table('messages', {
   role: v.union(v.literal('user'), v.literal('model')),
   content: v.string(),
+  image: v.optional(
+    v.object({
+      storageId: v.id('_storage'),
+      name: v.string(),
+      size: v.number(),
+    })
+  ),
   chatId: v.id('chats'),
   userId: v.id('users'),
 });
