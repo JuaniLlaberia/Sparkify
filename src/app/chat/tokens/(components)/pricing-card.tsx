@@ -36,7 +36,7 @@ const PricingCard = ({
           />
           {tokens} tokens
         </h2>
-        <p className='text-sm text-muted-foreground'>{desc}</p>
+        <p className='text-sm text-muted-foreground min-h-16'>{desc}</p>
       </div>
       <Separator />
       <div className='p-4 flex items-center justify-center'>
