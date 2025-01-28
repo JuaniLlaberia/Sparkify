@@ -86,10 +86,12 @@ const ChatView = ({ chatId }: ChatViewProps) => {
       setIsLoadingMessage(true);
       setIsLoadingCode(true);
 
-      const history = messages?.map(msg => ({
-        role: msg.role === 'user' ? 'user' : 'model',
-        parts: [{ text: msg.content }],
-      }))!;
+      const history = messages
+        ? messages.map(msg => ({
+            role: msg.role === 'user' ? 'user' : 'model',
+            parts: [{ text: msg.content }],
+          }))
+        : [];
 
       await Promise.all([
         generateGeminiMessage({
