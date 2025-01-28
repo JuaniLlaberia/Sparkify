@@ -2,6 +2,8 @@ import GitHub from '@auth/core/providers/github';
 import Google, { GoogleProfile } from '@auth/core/providers/google';
 import { convexAuth } from '@convex-dev/auth/server';
 
+const DEFAULT_TOKENS = 50000;
+
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   providers: [
     GitHub({
@@ -11,6 +13,7 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
           fullName: profile.name || profile.login,
           email: profile.email,
           image: profile.avatar_url,
+          tokens: DEFAULT_TOKENS,
         };
       },
     }),
@@ -22,6 +25,7 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
             profile.name || `${profile.given_name} ${profile.family_name}`,
           email: profile.email,
           image: profile.picture,
+          tokens: DEFAULT_TOKENS,
         };
       },
     }),

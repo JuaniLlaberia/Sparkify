@@ -4,8 +4,22 @@ import { v } from 'convex/values';
 import { action } from './_generated/server';
 import { api } from './_generated/api';
 
+const countTokens = (input: string): number => {
+  return input
+    .trim()
+    .split(/\s+/)
+    .filter(word => word.length).length;
+};
+
 class GeminiService {
   private static instance: GoogleGenerativeAI;
+
+  private static readonly CHAT_PROMPT_TOKENS = 100; // Base tokens for chat template
+  private static readonly CODE_PROMPT_TOKENS = 500; // Base tokens for code template
+  private static readonly TOKEN_MULTIPLIER = {
+    chat: 2, // Expected response about 2x input
+    code: 5, // Code responses can be 5x larger due to structure
+  };
 
   static getInstance() {
     if (!this.instance) {
@@ -13,7 +27,6 @@ class GeminiService {
         process.env.GEMINI_API_KEY as string
       );
     }
-
     return this.instance;
   }
 
@@ -31,6 +44,14 @@ class GeminiService {
       generationConfig,
     });
   }
+
+  static estimateTokens(prompt: string, type: 'chat' | 'code'): number {
+    const promptTokens = countTokens(prompt);
+    const baseTokens =
+      type === 'chat' ? this.CHAT_PROMPT_TOKENS : this.CODE_PROMPT_TOKENS;
+
+    return baseTokens + promptTokens * this.TOKEN_MULTIPLIER[type];
+  }
 }
 
 export const generateGeminiMessage = action({
@@ -45,6 +66,19 @@ export const generateGeminiMessage = action({
     ),
   },
   handler: async (ctx, { chatId, prompt, history = [] }) => {
+    const user = await ctx.runQuery(api.users.currentUser);
+    if (!user)
+      throw new Error(
+        'You must be logged in to generate messages with gemini.'
+      );
+
+    const estimatedTokens = GeminiService.estimateTokens(prompt, 'chat');
+    if (user.tokens < estimatedTokens) {
+      throw new Error(
+        `Insufficient tokens. Required: ${estimatedTokens}, Available: ${user.tokens}`
+      );
+    }
+
     const chatModel = GeminiService.getModel('chat');
 
     // Chat implementation
@@ -60,11 +94,19 @@ export const generateGeminiMessage = action({
 `;
     const chatSession = chatModel.startChat({ history });
     const chatResponse = await chatSession.sendMessage(CHAT_PROMPT);
-    await ctx.runMutation(api.messages.createMessage, {
-      role: 'model',
-      content: chatResponse.response.text(),
-      chatId,
-    });
+
+    const tokensUsed = countTokens(CHAT_PROMPT + chatResponse.response.text());
+
+    await Promise.all([
+      ctx.runMutation(api.messages.createMessage, {
+        role: 'model',
+        content: chatResponse.response.text(),
+        chatId,
+      }),
+      ctx.runMutation(api.users.updateUsersTokens, {
+        tokens: user.tokens - tokensUsed,
+      }),
+    ]);
 
     return {
       chatResponseText: chatResponse.response.text(),
@@ -84,6 +126,19 @@ export const generateGeminiCode = action({
     ),
   },
   handler: async (ctx, { chatId, prompt, history = [] }) => {
+    const user = await ctx.runQuery(api.users.currentUser);
+    if (!user)
+      throw new Error(
+        'You must be logged in to generate messages with gemini.'
+      );
+
+    const estimatedTokens = GeminiService.estimateTokens(prompt, 'code');
+    if (user.tokens < estimatedTokens) {
+      throw new Error(
+        `Insufficient tokens. Required: ${estimatedTokens}, Available: ${user.tokens}`
+      );
+    }
+
     const codeModel = GeminiService.getModel('code');
 
     // Code implementation
@@ -125,12 +180,19 @@ export const generateGeminiCode = action({
     const codeSession = codeModel.startChat({ history });
     const codeResponse = await codeSession.sendMessage(CODE_PROMPT);
 
-    await ctx.runMutation(api.chats.updateChat, {
-      chatId,
-      chatData: {
-        fileData: JSON.parse(codeResponse.response.text())?.files,
-      },
-    });
+    const tokensUsed = countTokens(CODE_PROMPT + codeResponse.response.text());
+
+    await Promise.all([
+      ctx.runMutation(api.chats.updateChat, {
+        chatId,
+        chatData: {
+          fileData: JSON.parse(codeResponse.response.text())?.files,
+        },
+      }),
+      ctx.runMutation(api.users.updateUsersTokens, {
+        tokens: user.tokens - tokensUsed,
+      }),
+    ]);
 
     return {
       codeResponseText: codeResponse.response.text(),

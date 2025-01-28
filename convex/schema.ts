@@ -8,6 +8,7 @@ export const Users = Table('users', {
   email: v.string(),
   emailVerificationTime: v.optional(v.number()),
   image: v.optional(v.string()),
+  tokens: v.number(),
 });
 
 export const Chats = Table('chats', {
