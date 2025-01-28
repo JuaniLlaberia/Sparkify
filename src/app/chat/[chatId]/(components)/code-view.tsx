@@ -4,18 +4,19 @@ import {
   SandpackProvider,
   SandpackLayout,
   SandpackCodeEditor,
-  SandpackPreview,
   SandpackFileExplorer,
 } from '@codesandbox/sandpack-react';
 import { useEffect, useState } from 'react';
 import { Loader } from 'lucide-react';
 import { useQuery } from 'convex/react';
 
+import CodePreview from './code-preview';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DEFAULT_FILES, DEPENDENCIES } from '@/lib/consts';
 import { api } from '../../../../../convex/_generated/api';
 import { Id } from '../../../../../convex/_generated/dataModel';
 import { useLoaders } from '@/context/loaders-context';
+import { useSandpackActions } from '@/context/sandpack-action-context';
 
 type CodeViewProps = {
   chatId: Id<'chats'>;
@@ -24,6 +25,7 @@ type CodeViewProps = {
 const CodeView = ({ chatId }: CodeViewProps) => {
   const [activeView, setActiveView] = useState<'editor' | 'preview'>('editor');
   const { isLoadingCode } = useLoaders();
+  const { action } = useSandpackActions();
 
   const chat = useQuery(api.chats.getChat, { chatId });
   const mergedFiles = { ...DEFAULT_FILES, ...chat?.fileData };
@@ -31,6 +33,10 @@ const CodeView = ({ chatId }: CodeViewProps) => {
   useEffect(() => {
     if (isLoadingCode) setActiveView('editor');
   }, [isLoadingCode]);
+
+  useEffect(() => {
+    setActiveView('preview');
+  }, [action]);
 
   return (
     <section className='relative col-span-full md:col-span-4 lg:col-span-5'>
@@ -80,13 +86,7 @@ const CodeView = ({ chatId }: CodeViewProps) => {
               />
             </>
           ) : (
-            <SandpackPreview
-              showNavigator
-              style={{
-                height: '83vh',
-                backgroundColor: '#101010',
-              }}
-            />
+            <CodePreview />
           )}
         </SandpackLayout>
       </SandpackProvider>
