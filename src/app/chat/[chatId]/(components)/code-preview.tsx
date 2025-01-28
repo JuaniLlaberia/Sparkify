@@ -29,7 +29,7 @@ const CodePreview = () => {
 
   useEffect(() => {
     handleGetSandpackClient();
-  }, [sandpack && action]);
+  }, [sandpack && action, handleGetSandpackClient]);
 
   return (
     <SandpackPreview
