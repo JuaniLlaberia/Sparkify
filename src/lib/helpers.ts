@@ -26,3 +26,24 @@ export const formatNumber = (value: number) => {
   const formatter = new Intl.NumberFormat('en-US', {});
   return formatter.format(value);
 };
+
+export const convertImageToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        const base64String = reader.result.split(',')[1];
+        resolve(base64String);
+      }
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
+export const formatFileSize = (sizeInBytes: number) => {
+  const sizeInKB = sizeInBytes / 1024;
+  return sizeInKB >= 1024
+    ? `${(sizeInKB / 1024).toFixed(2)} MB`
+    : `${sizeInKB.toFixed(2)} KB`;
+};
