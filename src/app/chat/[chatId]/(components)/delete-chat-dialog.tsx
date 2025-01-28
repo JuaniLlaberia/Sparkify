@@ -4,6 +4,7 @@ import { useState, type ReactElement } from 'react';
 import { useMutation } from 'convex/react';
 import { toast } from 'sonner';
 import { Loader } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import {
   Dialog,
@@ -30,6 +31,7 @@ const DeleteChatDialog = ({
   trigger,
   onSuccess,
 }: DeleteChatDialogProps) => {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const deleteChat = useMutation(api.chats.deleteChat);
@@ -41,8 +43,9 @@ const DeleteChatDialog = ({
       await deleteChat({ chatId });
 
       onSuccess?.();
-      toast.success('Message deleted successfully');
+      toast.success('Chat deleted successfully');
       setIsOpen(false);
+      router.push('/');
     } catch {
       toast.error('Failed to delete chat');
     } finally {
