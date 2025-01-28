@@ -51,8 +51,13 @@ const ChatView = ({ chatId }: ChatViewProps) => {
         chatId,
         history,
       }).then(() => setIsLoadingCode(false));
-    } catch {
-      toast.error('Something went wrong! Try again please');
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error && error.message.includes('Insufficient credits')
+          ? 'Not enough credits! Please purchase more credits to continue.'
+          : 'Something went wrong! Try again please';
+
+      toast.error(errorMessage);
     }
   };
 

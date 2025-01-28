@@ -144,3 +144,34 @@ export default config;`,
     ),
   },
 };
+
+export const PRICING_OPTIONS = [
+  {
+    name: 'Starter',
+    tokens: '50K',
+    value: 50000,
+    desc: 'Explore what Sparkify has to offer. This bundle is great for light usage.',
+    price: 4.99,
+  },
+  {
+    name: 'Value',
+    tokens: '500K',
+    value: 500000,
+    desc: 'A balanced bundle for those who want to start getting more serious with Sparkify.',
+    price: 9.99,
+  },
+  {
+    name: 'Pro',
+    tokens: '2.5M',
+    value: 2500000,
+    desc: 'Designed for professionals who need to use Sparkify on daily basis.',
+    price: 19.99,
+  },
+  {
+    name: 'Ultimate ',
+    tokens: '10M',
+    value: 10000000,
+    desc: 'Maximize your savings while ensuring you have a long-term supply of tokens for seamless usage.',
+    price: 49.99,
+  },
+];

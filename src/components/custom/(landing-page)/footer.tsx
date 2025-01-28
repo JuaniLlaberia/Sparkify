@@ -1,3 +1,6 @@
+'use client';
+
+import { Authenticated } from 'convex/react';
 import Link from 'next/link';
 
 const Footer = () => {
@@ -21,7 +24,19 @@ const Footer = () => {
             Privacy
           </Link>
         </li>
-        |<li>Sparkify © {new Date().getFullYear()} All rights reserved</li>
+        |
+        <Authenticated>
+          <li>
+            <Link
+              href='/chat/tokens'
+              className='hover:underline'
+            >
+              Tokens
+            </Link>
+          </li>
+          |
+        </Authenticated>
+        <li>Sparkify © {new Date().getFullYear()} All rights reserved</li>
       </ul>
     </footer>
   );

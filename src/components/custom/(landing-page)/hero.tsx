@@ -53,8 +53,13 @@ const Hero = () => {
         chatId,
         history: [],
       }).then(() => setIsLoadingCode(false));
-    } catch {
-      toast.error('Failed to create chat');
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error && error.message.includes('Insufficient credits')
+          ? 'Not enough credits! Please purchase more credits to continue.'
+          : 'Something went wrong! Try again please';
+
+      toast.error(errorMessage);
     }
   };
 
