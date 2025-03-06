@@ -1,9 +1,9 @@
 
 <div style="display: flex; gap: 12px; justify-content: center;">
-  <img src="https://img.shields.io/github/contributors/JuaniLlaberia/StartupLink?color=blue&style=for-the-badge&logo=github" alt="Contributors">
-  <img src="https://img.shields.io/github/stars/JuaniLlaberia/StartupLink?color=yellow&style=for-the-badge&logo=github" alt="Stars">
-  <img src="https://img.shields.io/github/license/JuaniLlaberia/StartupLink?color=brightgreen&style=for-the-badge" alt="License">
-  <img src="https://img.shields.io/github/issues/JuaniLlaberia/StartupLink?color=brightgreen&style=for-the-badge" /> &nbsp;
+  <img src="https://img.shields.io/github/contributors/JuaniLlaberia/Sparkify?color=blue&style=for-the-badge&logo=github" alt="Contributors">
+  <img src="https://img.shields.io/github/stars/JuaniLlaberia/Sparkify?color=yellow&style=for-the-badge&logo=github" alt="Stars">
+  <img src="https://img.shields.io/github/license/JuaniLlaberia/Sparkify?color=brightgreen&style=for-the-badge" alt="License">
+  <img src="https://img.shields.io/github/issues/JuaniLlaberia/Sparkify?color=brightgreen&style=for-the-badge" /> &nbsp;
   <a href="[https://www.linkedin.com/in/your-linkedin/](https://www.linkedin.com/in/juan-ignacio-llaberia-241b351b3/)">
     <img src="https://img.shields.io/badge/LinkedIn-Profile-blue?style=for-the-badge&logo=linkedin" alt="LinkedIn">
   </a>
